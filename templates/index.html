@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Role Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Job Role Recommendation System</h1>
+        <form method="POST">
+            <input type="text" name="job_role" placeholder="Enter Job Role" required>
+            <button type="submit">Get Recommendations</button>
+        </form>
+
+        {% if recommendations %}
+            <h2>Recommended Jobs:</h2>
+            <ul>
+                {% for job in recommendations %}
+                    <li><b>{{ job["job_role"] }}</b> at {{ job["company_name"] }} ({{ job["company_type"] }})</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</body>
+</html>
