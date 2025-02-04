@@ -17,7 +17,7 @@ def get_recommendations(job_role, top_n=5):
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:top_n+1]
     job_indices = [i[0] for i in sim_scores]
 
-    return df.iloc[job_indices][["job_role", "company_name", "company_type"]].to_dict(orient="records")
+    return df.iloc[job_indices][["job_role", "company_name", "company_type","skills"]].to_dict(orient="records")
 
 # Home Route
 @app.route("/", methods=["GET", "POST"])

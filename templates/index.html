@@ -18,7 +18,10 @@
             <h2>Recommended Jobs:</h2>
             <ul>
                 {% for job in recommendations %}
-                    <li><b>{{ job["job_role"] }}</b> at {{ job["company_name"] }} ({{ job["company_type"] }})</li>
+                    <li>
+                        <b>{{ job["job_role"] }}</b> at {{ job["company_name"] }} ({{ job["company_type"] }})<br>
+                        <strong>Required Skills:</strong> {{ job["skills"] }}
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}
