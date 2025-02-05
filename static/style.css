@@ -1,31 +1,111 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    text-align: center;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: #f4f4f9; /* Light gray background */
+    color: #333333; /* Dark text for readability */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin: 0;
+    overflow-y: auto; /* Allow vertical scrolling */
 }
 
 .container {
     max-width: 500px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-    border-radius: 10px;
+    width: 100%;
+    background-color: #ffffff; /* White background for the container */
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    max-height: 90vh; /* Ensures the container doesn't get too tall */
+    overflow-y: auto; /* Allows scrolling within the container */
+}
+
+.container:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #102d47; /* Navy blue for the heading */
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+h2 {
+    color: #2b3d4f; /* Slightly lighter blue-gray for subheading */
+    text-align: center;
+    font-size: 1.8em;
+    margin-top: 30px;
+    font-weight: 500;
 }
 
 input, button {
-    padding: 10px;
-    margin: 5px;
-    width: 80%;
+    padding: 12px;
+    margin: 12px 0;
+    width: 100%;
+    border: 1px solid #636567; /* Light gray border for inputs */
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #ECF0F1; /* Soft off-white background for inputs */
+    color: #333333;
+}
+
+input:focus, button:focus {
+    outline: none;
+    border-color: #2980B9; /* Deep blue border on focus */
+    box-shadow: 0 0 0 0.2rem rgba(41, 128, 185, 0.25); /* Deep blue focus shadow */
 }
 
 button {
-    background-color: #28a745;
+    background-color: #2980B9; /* Rich blue for button */
     color: white;
     border: none;
     cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s ease-in-out;
 }
 
 button:hover {
-    background-color: #218838;
+    background-color: #1F618D; /* Darker blue on hover */
+    transform: translateY(-2px);
+}
+
+button:active {
+    background-color: #2980B9;
+    transform: translateY(2px);
+}
+
+button:disabled {
+    background-color: #BDC3C7; /* Light gray when disabled */
+    cursor: not-allowed;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #ECF0F1; /* Light gray background for job items */
+    margin: 15px 0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+li:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Hover effect for job items */
+}
+
+li b {
+    color: #2980B9; /* Rich blue for the job role */
+}
+
+li strong {
+    color: #515a5b; /* Soft gray for the required skills label */
 }
