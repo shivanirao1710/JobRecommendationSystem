@@ -212,3 +212,33 @@ input[type="radio"]:focus {
         height: 16px;
     }
 }
+/* Style for the anchor (a) links */
+a {
+    color: #1f73b7; /* Default link color */
+    text-decoration: none; /* Remove underline */
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* Hover effect for links */
+a:hover {
+    color: #3a7eb4; /* Change color when hovering */
+    text-decoration: underline; /* Add underline on hover */
+}
+
+/* Focus effect for links (for accessibility) */
+a:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(72, 133, 242, 0.6);
+}
+
+/* Style for links inside the job recommendations list */
+ul li a {
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Add a small margin below the link */
+ul li a {
+    margin-bottom: 15px;
+}

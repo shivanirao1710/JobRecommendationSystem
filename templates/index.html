@@ -9,10 +9,9 @@
 <body>
     <div class="container">
         <h1>Job Role Recommendation System</h1>
+        
+        <!-- Form to search by either skills or job role -->
         <form method="POST">
-            
-            
-            <!-- Radio buttons container with the .radio-group class -->
             <div class="radio-group">
                 <label>
                     <input type="radio" name="search_type" value="skills" {% if search_type == 'skills' %}checked{% endif %}>
@@ -23,21 +22,30 @@
                     Search by Job Role
                 </label>
             </div>
-            <input type="text" name="query" placeholder="Enter Skills or Job Role" required>
+            
+            <!-- Single input field for both skills and job role -->
+            <input type="text" name="skills" placeholder="Enter Skills or Job Role" required value="{{ request.form.get('skills', '') }}">
+
             <button type="submit">Get Recommendations</button>
         </form>
+
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
 
         {% if recommendations %}
             <h2>Recommended Jobs:</h2>
             <ul>
                 {% for job in recommendations %}
                     <li>
-                        <b>{{ job["job_role"] }}</b> at {{ job["company_name"] }} ({{ job["company_type"] }})<br>
-                        <strong>Required Skills:</strong> {{ job["skills"] }}
+                        <a href="{{ url_for('job_details', job_role=job['job_role'], company_name=job['company_name']) }}">
+                            <b>{{ job["job_role"] }}</b> at {{ job["company_name"] }} ({{ job["company_type"] }})
+                        </a>
                     </li>
                 {% endfor %}
             </ul>
         {% endif %}
+        <a href="{{ url_for('reset') }}">Reset Search</a>
     </div>
 </body>
 </html>
