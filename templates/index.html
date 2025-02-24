@@ -10,7 +10,20 @@
     <div class="container">
         <h1>Job Role Recommendation System</h1>
         <form method="POST">
-            <input type="text" name="skills" placeholder="Enter Skills (comma separated)" required>
+            
+            
+            <!-- Radio buttons container with the .radio-group class -->
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="search_type" value="skills" {% if search_type == 'skills' %}checked{% endif %}>
+                    Search by Skills
+                </label>
+                <label>
+                    <input type="radio" name="search_type" value="job_role" {% if search_type == 'job_role' %}checked{% endif %}>
+                    Search by Job Role
+                </label>
+            </div>
+            <input type="text" name="query" placeholder="Enter Skills or Job Role" required>
             <button type="submit">Get Recommendations</button>
         </form>
 

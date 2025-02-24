@@ -143,3 +143,72 @@ li p {
 .recommendations {
     animation: fadeIn 0.5s ease-in-out;
 }
+/* Style for the form container */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center; /* Centers form contents horizontally */
+    justify-content: center;
+    margin-top: 30px; /* Reduces the top gap */
+}
+
+/* Container for the radio buttons to align them side by side */
+.radio-group {
+    display: flex;
+    gap: 20px; /* Space between radio buttons */
+    align-items: center; /* Vertically center the radio buttons */
+    justify-content: center; /* Center the radio buttons and labels horizontally */
+}
+
+/* Style for labels with radio buttons */
+label {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #000000;
+}
+
+/* Style for the radio buttons */
+input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    appearance: none; /* Remove default styling */
+    border: 2px solid #1f273c;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Change radio button appearance when checked */
+input[type="radio"]:checked {
+    background-color: #23253b;
+    border-color: #201d31;
+}
+
+/* Adding a hover effect */
+input[type="radio"]:hover {
+    border-color: #341962;
+}
+
+/* Adding focus style for better accessibility */
+input[type="radio"]:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(72, 133, 242, 0.6);
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+    label {
+        font-size: 14px;
+    }
+    
+    input[type="radio"] {
+        width: 16px;
+        height: 16px;
+    }
+}
