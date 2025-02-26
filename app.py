@@ -1,29 +1,32 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import mysql.connector
+import psycopg2
+from psycopg2.extras import DictCursor  # Import DictCursor for dictionary-based results
 import json
 from sentence_transformers import SentenceTransformer
+from flask import Flask, render_template, request, redirect, url_for, session
 from sklearn.metrics.pairwise import cosine_similarity
+
+# PostgreSQL database connection details
+db_config = {
+    'host': 'localhost',
+    'user': 'postgres',  # Replace with your PostgreSQL username
+    'password': 'shivanirao1710',  # Replace with your PostgreSQL password
+    'database': 'jobtaxonomy'  # Replace with your database name
+}
+
+# Initialize SentenceTransformer model (you can replace this with a different model)
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-# MySQL database connection details
-db_config = {
-    'host': 'localhost',
-    'user': 'root',  # Your MySQL username
-    'password': 'shivanirao1710',  # Your MySQL password
-    'database': 'jobtaxonomy'  # Your database name
-}
-
-# Initialize SentenceTransformer model
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
-# Function to get job data from MySQL
-def get_job_data_from_mysql():
+# Function to get job data from the job_data_cleaned table (preprocessed data)
+def get_job_data_from_postgresql():
     try:
-        connection = mysql.connector.connect(**db_config)
-        cursor = connection.cursor(dictionary=True)
+        connection = psycopg2.connect(**db_config)
+        # Use DictCursor to get results as a dictionary
+        cursor = connection.cursor(cursor_factory=DictCursor)
         
+        # Query to fetch data from job_data_cleaned table (preprocessed data)
         cursor.execute("SELECT job_role, company_name, company_type, knowledge_cleaned, skills_cleaned, combined_features, embedding FROM job_data_cleaned")
         job_data = cursor.fetchall()
         
@@ -31,7 +34,7 @@ def get_job_data_from_mysql():
         connection.close()
         
         return job_data
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         print(f"Error: {err}")
         return []
 
@@ -44,8 +47,8 @@ def find_job_roles_by_skills(skills, top_n=5):
     # Get embedding for the user's query
     query_embedding = model.encode([query])[0]
     
-    # Fetch job data from MySQL
-    job_data = get_job_data_from_mysql()
+    # Fetch job data from PostgreSQL
+    job_data = get_job_data_from_postgresql()
     
     # Calculate cosine similarities
     cosine_similarities = []
@@ -68,15 +71,15 @@ def find_job_roles_by_skills(skills, top_n=5):
     
     return recommended_jobs
 
-# Function to find job roles by job role name
+# Function to find job roles by job role name (added this function)
 def find_job_roles_by_job_role(job_role, top_n=5):
     job_role = job_role.lower().strip()
     
     # Get embedding for the user's job role query
     query_embedding = model.encode([job_role])[0]
     
-    # Fetch job data from MySQL
-    job_data = get_job_data_from_mysql()
+    # Fetch job data from PostgreSQL
+    job_data = get_job_data_from_postgresql()
     
     # Calculate cosine similarities
     cosine_similarities = []
@@ -131,7 +134,7 @@ def index():
 # Job Details Route (for viewing specific job details)
 @app.route("/job/<job_role>/<company_name>")
 def job_details(job_role, company_name):
-    job_data = get_job_data_from_mysql()
+    job_data = get_job_data_from_postgresql()
     
     # Look for the specific job with matching job_role and company_name
     job_details = next((job for job in job_data if job['job_role'] == job_role and job['company_name'] == company_name), None)
