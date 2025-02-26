@@ -1,60 +1,99 @@
 import mysql.connector
-import pandas as pd
-import nltk
-from nltk.corpus import stopwords
 import re
+import string
+import json
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
 
-# Download NLTK stopwords if not present
-nltk.download('stopwords')
+# MySQL database connection details
+db_config = {
+    'host': 'localhost',
+    'user': 'root',  # Replace with your MySQL username
+    'password': 'shivanirao1710',  # Replace with your MySQL password
+    'database': 'jobtaxonomy'  # Replace with your database name
+}
 
-# Connect to MySQL database
-conn = mysql.connector.connect(
-    host="localhost", 
-    user="root", 
-    password="shivanirao1710", 
-    database="jobtaxonomy"
-)
+# Initialize SentenceTransformer model (you can replace this with a different model)
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Fetch data from jobroles table
-query = "SELECT job_role, company_name, company_type, knowledge, skills FROM jobroles"
-df = pd.read_sql(query, con=conn)
-conn.close()
-
-# Fill missing values with empty strings
-df.fillna("", inplace=True)
-
-# Function to clean text
+# Function to clean text (remove punctuation, lowercasing, etc.)
 def clean_text(text):
     text = text.lower()  # Convert to lowercase
-    text = re.sub(r"[^a-zA-Z0-9\s]", "", text)  # Remove special characters
-    text = " ".join([word for word in text.split() if word not in stopwords.words("english")])  # Remove stopwords
-    return text
+    text = re.sub(f"[{string.punctuation}]", "", text)  # Remove punctuation
+    text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with single space
+    return text.strip()
 
-# Apply cleaning to relevant columns
-df["knowledge_cleaned"] = df["knowledge"].apply(clean_text)
-df["skills_cleaned"] = df["skills"].apply(clean_text)
+# Function to get job data from the jobroles table
+def get_job_data_from_mysql():
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+    
+    # Query to fetch data from jobroles table
+    cursor.execute("SELECT job_role, company_name, company_type, knowledge, skills FROM jobroles")
+    job_data = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+    
+    return job_data
 
-# Combine important features
-df["combined_features"] = df["job_role"] + " " + df["company_type"] + " " + df["knowledge_cleaned"] + " " + df["skills_cleaned"]
+# Function to save cleaned job data to job_data_cleaned table
+def save_cleaned_data_to_mysql(cleaned_data):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor()
+    
+    # Insert cleaned data into the job_data_cleaned table
+    for job in cleaned_data:
+        cursor.execute("""
+            INSERT INTO job_data_cleaned (job_role, company_name, company_type, knowledge_cleaned, skills_cleaned, combined_features, embedding)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (job['job_role'], job['company_name'], job['company_type'], job['knowledge_cleaned'], job['skills_cleaned'], job['combined_features'], job['embedding']))
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-# Insert cleaned data into jobroles_cleaned table
-conn = mysql.connector.connect(
-    host="localhost", 
-    user="root", 
-    password="shivanirao1710", 
-    database="jobtaxonomy"
-)
+# Function to preprocess job data and generate the cleaned data
+def preprocess_data():
+    # Step 1: Get job data from MySQL
+    job_data = get_job_data_from_mysql()
 
-cursor = conn.cursor()
+    # Step 2: Preprocess the job data
+    cleaned_data = []
+    for job in job_data:
+        job_role = job['job_role']
+        company_name = job['company_name']
+        company_type = job['company_type']
+        
+        # Clean knowledge and skills text
+        knowledge_cleaned = clean_text(job['knowledge'])
+        skills_cleaned = clean_text(job['skills'])
+        
+        # Combine knowledge and skills
+        combined_features = knowledge_cleaned + " " + skills_cleaned
+        
+        # Generate embedding using the SentenceTransformer model
+        embedding = model.encode([combined_features])[0]  # Get the embedding vector
+        
+        # Convert embedding (list) to JSON string
+        embedding_json = json.dumps(embedding.tolist())  # Serialize the embedding list to JSON
+        
+        # Store the cleaned data in a dictionary
+        cleaned_data.append({
+            'job_role': job_role,
+            'company_name': company_name,
+            'company_type': company_type,
+            'knowledge_cleaned': knowledge_cleaned,
+            'skills_cleaned': skills_cleaned,
+            'combined_features': combined_features,
+            'embedding': embedding_json  # Store as JSON string
+        })
+    
+    # Step 3: Save the cleaned data to MySQL job_data_cleaned table
+    save_cleaned_data_to_mysql(cleaned_data)
 
-# Insert data into job_data_cleaned table
-for _, row in df.iterrows():
-    cursor.execute("""
-        INSERT INTO job_data_cleaned (job_role, company_name, company_type, knowledge_cleaned, skills_cleaned, combined_features)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (row['job_role'], row['company_name'], row['company_type'], row['knowledge_cleaned'], row['skills_cleaned'], row['combined_features']))
+    print(f"Processed {len(cleaned_data)} job entries and saved them to the database.")
 
-conn.commit()
-conn.close()
-
-print("✅ Data preprocessing and insertion complete.")
+# Run the preprocessing
+if __name__ == "__main__":
+    preprocess_data()

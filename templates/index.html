@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Job Role Recommender</title>
+    <title>Job Role Recommendation System</title>
 </head>
 <body>
     <div class="container">
@@ -23,9 +23,7 @@
                 </label>
             </div>
             
-            <!-- Single input field for both skills and job role -->
             <input type="text" name="skills" placeholder="Enter Skills or Job Role" required value="{{ request.form.get('skills', '') }}">
-
             <button type="submit">Get Recommendations</button>
         </form>
 
@@ -46,9 +44,9 @@
             </ul>
         {% else %}
             {% if search_type == 'skills' %}
-                <p>No recommendations found for the entered skills.</p>
+                <p>No recommendations found for the entered skills. Try modifying the input or using different skills.</p>
             {% elif search_type == 'job_role' %}
-                <p>No recommendations found for the entered job role.</p>
+                <p>No recommendations found for the entered job role. Try modifying the input or using different job titles.</p>
             {% endif %}
         {% endif %}
         
