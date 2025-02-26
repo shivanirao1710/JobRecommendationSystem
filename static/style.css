@@ -36,7 +36,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    max-height: 85vh;
+    max-height: 80vh;
     overflow-y: auto;
     border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border for depth */
 }
@@ -169,7 +169,7 @@ input:focus, button:focus {
 }
 
 button {
-    background-color: #2980b9;
+    background-color: #4563f8;
     color: white;
     border: none;
     cursor: pointer;
@@ -178,7 +178,7 @@ button {
 }
 
 button:hover {
-    background-color: #1f618d;
+    background-color: #3c07fb;
     transform: translateY(-3px);
 }
 

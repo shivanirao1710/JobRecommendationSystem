@@ -1,14 +1,24 @@
+import mysql.connector
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
 import re
-import os
 
 # Download NLTK stopwords if not present
 nltk.download('stopwords')
 
-# Load dataset (handle encoding issues)
-df = pd.read_csv("dataset/job_data.csv", encoding="ISO-8859-1")
+# Connect to MySQL database
+conn = mysql.connector.connect(
+    host="localhost", 
+    user="root", 
+    password="shivanirao1710", 
+    database="jobtaxonomy"
+)
+
+# Fetch data from jobroles table
+query = "SELECT job_role, company_name, company_type, knowledge, skills FROM jobroles"
+df = pd.read_sql(query, con=conn)
+conn.close()
 
 # Fill missing values with empty strings
 df.fillna("", inplace=True)
@@ -27,8 +37,24 @@ df["skills_cleaned"] = df["skills"].apply(clean_text)
 # Combine important features
 df["combined_features"] = df["job_role"] + " " + df["company_type"] + " " + df["knowledge_cleaned"] + " " + df["skills_cleaned"]
 
-# Save cleaned dataset
-os.makedirs("dataset", exist_ok=True)
-df.to_csv("dataset/cleaned_data.csv", index=False)
+# Insert cleaned data into jobroles_cleaned table
+conn = mysql.connector.connect(
+    host="localhost", 
+    user="root", 
+    password="shivanirao1710", 
+    database="jobtaxonomy"
+)
 
-print("✅ Data preprocessing complete. File saved as 'dataset/cleaned_data.csv'.")
+cursor = conn.cursor()
+
+# Insert data into job_data_cleaned table
+for _, row in df.iterrows():
+    cursor.execute("""
+        INSERT INTO job_data_cleaned (job_role, company_name, company_type, knowledge_cleaned, skills_cleaned, combined_features)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (row['job_role'], row['company_name'], row['company_type'], row['knowledge_cleaned'], row['skills_cleaned'], row['combined_features']))
+
+conn.commit()
+conn.close()
+
+print("✅ Data preprocessing and insertion complete.")

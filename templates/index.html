@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Role Recommender</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Job Role Recommender</title>
 </head>
 <body>
     <div class="container">
@@ -44,7 +44,14 @@
                     </li>
                 {% endfor %}
             </ul>
+        {% else %}
+            {% if search_type == 'skills' %}
+                <p>No recommendations found for the entered skills.</p>
+            {% elif search_type == 'job_role' %}
+                <p>No recommendations found for the entered job role.</p>
+            {% endif %}
         {% endif %}
+        
         <a href="{{ url_for('reset') }}">Reset Search</a>
     </div>
 </body>
