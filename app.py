@@ -3,17 +3,18 @@ from psycopg2.extras import DictCursor  # Import DictCursor for dictionary-based
 import json
 from sentence_transformers import SentenceTransformer
 from flask import Flask, render_template, request, redirect, url_for, session
-from sklearn.metrics.pairwise import cosine_similarity
+import faiss
+import numpy as np
 
 # PostgreSQL database connection details
 db_config = {
-    'host': 'localhost',
+    'host': 'localhost',  # Change if necessary
     'user': 'postgres',  # Replace with your PostgreSQL username
     'password': 'shivanirao1710',  # Replace with your PostgreSQL password
     'database': 'jobtaxonomy'  # Replace with your database name
 }
 
-# Initialize SentenceTransformer model (you can replace this with a different model)
+# Initialize SentenceTransformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 app = Flask(__name__)
@@ -38,7 +39,31 @@ def get_job_data_from_postgresql():
         print(f"Error: {err}")
         return []
 
-# Function to find job roles by skills
+# Function to prepare FAISS index for semantic search
+def prepare_faiss_index(job_data):
+    job_embeddings = []
+    job_titles = []
+    for job in job_data:
+        embedding = job.get('embedding', '')
+        if embedding:
+            try:
+                embedding = json.loads(embedding)  # Convert JSON string back to list
+                job_embeddings.append(embedding)
+                job_titles.append(job['job_role'])
+            except json.JSONDecodeError:
+                print(f"Error decoding embedding for job {job['job_role']} at {job['company_name']}")
+                continue
+    
+    # Convert embeddings to numpy array (needed for FAISS)
+    job_embeddings = np.array(job_embeddings).astype('float32')
+
+    # Create FAISS index
+    faiss_index = faiss.IndexFlatL2(job_embeddings.shape[1])  # L2 distance for similarity search
+    faiss_index.add(job_embeddings)  # Add embeddings to the index
+
+    return faiss_index, job_titles
+
+# Function to find job roles by skills using FAISS for semantic search
 def find_job_roles_by_skills(skills, top_n=5):
     skills = skills.lower().split(",")
     skills = [skill.strip() for skill in skills]  # Remove extra spaces
@@ -49,29 +74,24 @@ def find_job_roles_by_skills(skills, top_n=5):
     
     # Fetch job data from PostgreSQL
     job_data = get_job_data_from_postgresql()
+
+    # Prepare FAISS index
+    faiss_index, job_titles = prepare_faiss_index(job_data)
     
-    # Calculate cosine similarities
-    cosine_similarities = []
-    for job in job_data:
-        embedding = job.get('embedding', '')
-        if embedding:
-            try:
-                embedding = json.loads(embedding)  # Convert JSON string back to list
-                cosine_sim = cosine_similarity([query_embedding], [embedding])[0][0]
-                cosine_similarities.append((job, cosine_sim))
-            except json.JSONDecodeError:
-                print(f"Error decoding embedding for job {job['job_role']} at {job['company_name']}")
-                continue
-        else:
-            continue
-    
-    # Sort by similarity and return the top N jobs
-    cosine_similarities.sort(key=lambda x: x[1], reverse=True)
-    recommended_jobs = [job for job, sim in cosine_similarities[:top_n]]
+    # Perform the search using FAISS
+    query_embedding = np.array(query_embedding).reshape(1, -1).astype('float32')
+    distances, indices = faiss_index.search(query_embedding, top_n)
+
+    # Get the top recommended jobs based on the FAISS search results
+    recommended_jobs = []
+    for index in indices[0]:
+        job = next((job for i, job in enumerate(job_data) if job_titles[i] == job_titles[index]), None)
+        if job:
+            recommended_jobs.append(job)
     
     return recommended_jobs
 
-# Function to find job roles by job role name (added this function)
+# Function to find job roles by job role name using FAISS for semantic search
 def find_job_roles_by_job_role(job_role, top_n=5):
     job_role = job_role.lower().strip()
     
@@ -80,25 +100,20 @@ def find_job_roles_by_job_role(job_role, top_n=5):
     
     # Fetch job data from PostgreSQL
     job_data = get_job_data_from_postgresql()
+
+    # Prepare FAISS index
+    faiss_index, job_titles = prepare_faiss_index(job_data)
     
-    # Calculate cosine similarities
-    cosine_similarities = []
-    for job in job_data:
-        embedding = job.get('embedding', '')
-        if embedding:
-            try:
-                embedding = json.loads(embedding)  # Convert JSON string back to list
-                cosine_sim = cosine_similarity([query_embedding], [embedding])[0][0]
-                cosine_similarities.append((job, cosine_sim))
-            except json.JSONDecodeError:
-                print(f"Error decoding embedding for job {job['job_role']} at {job['company_name']}")
-                continue
-        else:
-            continue
-    
-    # Sort by similarity and return the top N jobs
-    cosine_similarities.sort(key=lambda x: x[1], reverse=True)
-    recommended_jobs = [job for job, sim in cosine_similarities[:top_n]]
+    # Perform the search using FAISS
+    query_embedding = np.array(query_embedding).reshape(1, -1).astype('float32')
+    distances, indices = faiss_index.search(query_embedding, top_n)
+
+    # Get the top recommended jobs based on the FAISS search results
+    recommended_jobs = []
+    for index in indices[0]:
+        job = next((job for i, job in enumerate(job_data) if job_titles[i] == job_titles[index]), None)
+        if job:
+            recommended_jobs.append(job)
     
     return recommended_jobs
 
