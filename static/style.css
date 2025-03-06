@@ -342,3 +342,8 @@ ul li a {
 ul li a {
     margin-bottom: 15px;
 }
+p {
+    margin: 10px 0;
+    color: #555555;
+    line-height: 1.6;
+}
