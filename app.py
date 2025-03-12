@@ -103,6 +103,17 @@ def find_job_roles_by_job_role(job_role, top_n=5):
     return recommended_jobs
 
 
+def find_job_roles_by_company(company_name, top_n=5):
+    """Find job roles based on company name"""
+    company_name = company_name.lower().strip()
+    job_data = get_job_data_from_postgresql()
+    
+    # Filter job data based on the company name
+    filtered_jobs = [job for job in job_data if job['company_name'].lower() == company_name]
+    
+    return filtered_jobs
+
+
 def correct_grammar_and_generate_response(text):
     """Generate a well-formed response using GPT-2 for grammar correction"""
     inputs = gpt_tokenizer.encode(text, return_tensors='pt')
@@ -194,12 +205,14 @@ def index():
         query = request.form.get("skills", "").strip()
         
         if not query:
-            return render_template("index.html", recommendations=[], error="Please enter skills or job role.")
+            return render_template("index.html", recommendations=[], error="Please enter skills, job role, or company name.")
         
         if search_type == "skills":
             recommendations = find_job_roles_by_skills(query)
         elif search_type == "job_role":
             recommendations = find_job_roles_by_job_role(query)
+        elif search_type == "company_name":
+            recommendations = find_job_roles_by_company(query)
         
         session['search_type'] = search_type
         session['recommendations'] = recommendations
